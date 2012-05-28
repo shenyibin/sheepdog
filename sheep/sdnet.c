@@ -863,10 +863,10 @@ int get_sheep_fd(uint8_t *addr, uint16_t port, int node_idx, uint32_t epoch)
 	}
 
 	fd = cached_fds[node_idx];
-	dprintf("%d, %d\n", epoch, fd);
+	//dprintf("%d, %d\n", epoch, fd);
 
 	if (cached_epoch == epoch && fd >= 0) {
-		dprintf("using the cached fd %d\n", fd);
+		//dprintf("using the cached fd %d\n", fd);
 		return fd;
 	}
 

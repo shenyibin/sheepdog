@@ -101,8 +101,8 @@ void do_io_request(struct work *work)
 	else
 		epoch = req->rq.epoch;
 
-	dprintf("%x, %" PRIx64" , %u\n",
-		req->rq.opcode, req->rq.obj.oid, epoch);
+	//dprintf("%x, %" PRIx64" , %u\n",
+	//	req->rq.opcode, req->rq.obj.oid, epoch);
 
 	ret = do_local_io(req, epoch);
 
