@@ -91,7 +91,7 @@ struct data_object_bmap {
 	struct list_head list;
 };
 
-#define MAX_OUTSTANDING_DATA_SIZE (256 * 1024 * 1024)
+#define MAX_OUTSTANDING_DATA_SIZE (1 * 1024 * 1024 * 1024)
 
 struct cluster_info {
 	struct cluster_driver *cdrv;
