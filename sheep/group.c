@@ -920,8 +920,6 @@ void sd_join_handler(struct sd_node *joined, struct sd_node *members,
 	switch (result) {
 	case CJ_RES_SUCCESS:
 		dprintf("join %s\n", node_to_str(joined));
-		for (i = 0; i < nr_members; i++)
-			dprintf("[%x] %s\n", i, node_to_str(members + i));
 
 		if (sys_stat_shutdown())
 			break;
@@ -1012,8 +1010,6 @@ void sd_leave_handler(struct sd_node *left, struct sd_node *members,
 	int i;
 
 	dprintf("leave %s\n", node_to_str(left));
-	for (i = 0; i < nr_members; i++)
-		dprintf("[%x] %s\n", i, node_to_str(members + i));
 
 	if (sys_stat_shutdown())
 		return;
