@@ -413,9 +413,10 @@ static int delete_inode(struct deletion_work *dw, int objs_deleted)
 		goto out;
 	}
 
-	if (dw->delete_error)
+	if (dw->delete_error) {
+		memset(inode->name, 0, sizeof(inode->name));
 		inode->vdi_size = 0;
-	else {
+	} else {
 		memset(inode->name, 0, sizeof(inode->name));
 		if (objs_deleted)
 			inode->vdi_size = 0;
@@ -464,6 +465,8 @@ static void delete_one(struct work *work)
 
 	if (inode->vdi_size == 0 && inode->name[0] == '\0')
 		goto out;
+
+	dw->delete_error = 0;
 
 	for (i = 0; i < MAX_DATA_OBJS; i++) {
 		if (!inode->data_vdi_id[i])
