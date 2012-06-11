@@ -616,6 +616,7 @@ int remove_object(struct vnode_info *vnodes, uint32_t epoch,
 
 		fd = connect_to(name, v->port);
 		if (fd < 0) {
+			sleep(1);
 			rsp->result = SD_RES_NETWORK_ERROR;
 			return -1;
 		}

@@ -60,6 +60,7 @@ read_remote:
 
 		fd = get_sheep_fd(v->addr, v->port, v->node_idx, fwd_hdr.epoch);
 		if (fd < 0) {
+			sleep(1);
 			ret = SD_RES_NETWORK_ERROR;
 			continue;
 		}
@@ -122,6 +123,7 @@ int forward_write_obj_req(struct request *req)
 
 		fd = get_sheep_fd(v->addr, v->port, v->node_idx, fwd_hdr.epoch);
 		if (fd < 0) {
+			sleep(1);
 			eprintf("failed to connect to %s:%"PRIu32"\n", name,
 				v->port);
 			ret = SD_RES_NETWORK_ERROR;
