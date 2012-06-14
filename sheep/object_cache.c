@@ -651,7 +651,8 @@ static int object_cache_push(struct vnode_info *vnode_info,
 push_failed:
 	merge_dirty_tree_and_list(oc, inactive_dirty_tree,
 				  inactive_dirty_list);
-	return ret;
+	/* FIXME: Workaround, to be deleted */
+	return SD_RES_SUCCESS;
 }
 
 int object_is_cached(uint64_t oid)
