@@ -736,6 +736,7 @@ static void client_handler(int fd, int events, void *data)
 {
 	struct client_info *ci = (struct client_info *)data;
 
+	dprintf("fd %d, %d\n", fd, events);
 	if (events & EPOLLIN)
 		client_rx_handler(ci);
 
@@ -744,6 +745,8 @@ static void client_handler(int fd, int events, void *data)
 
 	if ((events & (EPOLLERR | EPOLLHUP))
 		|| is_conn_dead(&ci->conn)) {
+		dprintf("fd %d, %d, conn_dead %d\n", fd, events,
+			is_conn_dead(&ci->conn));
 		if (!(ci->conn.events & EPOLLIN))
 			list_del(&ci->conn.blocking_siblings);
 
