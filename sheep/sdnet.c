@@ -501,7 +501,7 @@ void req_done(struct request *req)
 	struct client_info *ci = req->ci;
 
 	if (conn_tx_on(&ci->conn)) {
-		dprintf("connection seems to be dead\n");
+                dprintf("connection seems to be dead: %s:%d\n", ci->conn.ipstr, ci->conn.port);
 		free_request(req);
 	} else {
 		list_add(&req->request_list, &ci->done_reqs);
