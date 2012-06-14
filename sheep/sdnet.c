@@ -526,6 +526,7 @@ static void client_rx_handler(struct client_info *ci)
 	struct sd_req *hdr = &conn->rx_hdr;
 	struct request *req;
 
+	dprintf("1 connection from: %s:%d\n", ci->conn.ipstr, ci->conn.port);
 	if (!ci->rx_req && sys->outstanding_data_size > MAX_OUTSTANDING_DATA_SIZE) {
 		dprintf("too many requests (%p)\n", &ci->conn);
 		conn_rx_off(&ci->conn);
@@ -585,7 +586,7 @@ static void client_rx_handler(struct client_info *ci)
 	else
 		req->rp.data_length = hdr->data_length;
 
-	dprintf("connection from: %s:%d\n", ci->conn.ipstr, ci->conn.port);
+	dprintf("2 connection from2: %s:%d\n", ci->conn.ipstr, ci->conn.port);
 	queue_request(req);
 }
 
@@ -746,7 +747,8 @@ static void client_handler(int fd, int events, void *data)
 		if (!(ci->conn.events & EPOLLIN))
 			list_del(&ci->conn.blocking_siblings);
 
-		dprintf("closed connection %d\n", fd);
+		dprintf("closed connection %d, %s:%d\n", fd,
+			ci->conn.ipstr, ci->conn.port);
 		unregister_event(fd);
 		client_decref(ci);
 	}
@@ -866,7 +868,7 @@ int get_sheep_fd(uint8_t *addr, uint16_t port, int node_idx, uint32_t epoch)
 	//dprintf("%d, %d\n", epoch, fd);
 
 	if (cached_epoch == epoch && fd >= 0) {
-		//dprintf("using the cached fd %d\n", fd);
+		dprintf("using the cached fd %d, %s:%d\n", fd, name, port);
 		return fd;
 	}
 

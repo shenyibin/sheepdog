@@ -1007,7 +1007,6 @@ void sd_leave_handler(struct sd_node *left, struct sd_node *members,
 		size_t nr_members)
 {
 	struct vnode_info *old_vnode_info;
-	int i;
 
 	dprintf("leave %s\n", node_to_str(left));
 

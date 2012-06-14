@@ -187,7 +187,8 @@ again:
 		}
 
 		if (rsp->result != SD_RES_SUCCESS) {
-			eprintf("fail %"PRIu32"\n", rsp->result);
+			eprintf("fail fd:%d, result:%"PRIu32", opcode:%x, epoch:%"PRIx32"\n",
+				pfds[i].fd, rsp->result, rsp->opcode, rsp->epoch);
 			ret = rsp->result;
 		}
 
