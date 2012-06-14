@@ -374,24 +374,6 @@ int read_vdis(char *data, int len, unsigned int *rsp_len)
 	return SD_RES_SUCCESS;
 }
 
-struct deletion_work {
-	uint32_t done;
-	uint32_t epoch;
-
-	struct work work;
-	struct list_head dw_siblings;
-
-	uint32_t vid;
-
-	int count;
-	uint32_t *buf;
-
-	struct vnode_info *vnodes;
-	int delete_error;
-};
-
-static LIST_HEAD(deletion_work_list);
-
 static int delete_inode(struct deletion_work *dw, int objs_deleted)
 {
 	struct sheepdog_inode *inode = NULL;
@@ -435,6 +417,39 @@ out:
 	return ret;
 }
 
+static int notify_deletion(uint64_t *oids, uint32_t count)
+{
+	int fd, ret;
+	unsigned int wlen, rlen = 0;
+	struct sd_req hdr;
+	char host[128];
+
+	addr_to_str(host, sizeof(host), sys->this_node.addr, 0);
+
+	fd = connect_to(host, sys->this_node.port);
+	if (fd < 0) {
+		eprintf("connect to local node fail\n");
+		return -1;
+	}
+
+	memset(&hdr, 0, sizeof(hdr));
+
+	hdr.proto_ver = SD_PROTO_VER;
+	hdr.opcode = SD_OP_NOTIFY_VDI_DEL;
+	hdr.flags = SD_FLAG_CMD_WRITE;
+	hdr.data_length = sizeof(uint64_t) * count;
+	wlen = hdr.data_length;
+
+	ret = exec_req(fd, (struct sd_req *)&hdr, oids, &wlen, &rlen);
+	close(fd);
+
+	if (ret < 0) {
+		eprintf("send request fail\n");
+		return -1;
+	}
+
+	return 0;
+}
 
 static void delete_one(struct work *work)
 {
@@ -468,25 +483,38 @@ static void delete_one(struct work *work)
 
 	dw->delete_error = 0;
 
+	dw->deleted_objs = malloc(sizeof(uint64_t) * MAX_DATA_OBJS);
+	if (!dw->deleted_objs) {
+		eprintf("failed to allocate memory\n");
+		goto out;
+	}
+
 	for (i = 0; i < MAX_DATA_OBJS; i++) {
+		uint64_t oid;
+
 		if (!inode->data_vdi_id[i])
 			continue;
 
+		oid = vid_to_data_oid(inode->data_vdi_id[i], i);
+
 		if (inode->data_vdi_id[i] != inode->vdi_id) {
 			dprintf("object %" PRIx64 " is base's data, would not be deleted.\n",
-					vid_to_data_oid(inode->data_vdi_id[i], i));
+				oid);
 			continue;
 		}
 
-		ret = remove_object(dw->vnodes, dw->epoch,
-			      vid_to_data_oid(inode->data_vdi_id[i], i),
-			      nr_copies);
+		ret = remove_object(dw->vnodes, dw->epoch, oid, nr_copies);
 
 		if (ret != SD_RES_SUCCESS)
 			dw->delete_error = 1;
-		else
+		else {
+			dw->deleted_objs[dw->deleted_count++] = oid;
 			inode->data_vdi_id[i] = 0;
+		}
 	}
+
+	if (dw->deleted_count > 0)
+		notify_deletion(dw->deleted_objs, dw->deleted_count);
 
 	if (dw->delete_error) {
 		write_object(dw->vnodes, dw->epoch, vid_to_vdi_oid(vdi_id),
@@ -513,10 +541,11 @@ static void delete_one_done(struct work *work)
 
 	put_vnode_info(dw->vnodes);
 	free(dw->buf);
+	free(dw->deleted_objs);
 	free(dw);
 
-	if (!list_empty(&deletion_work_list)) {
-		dw = list_first_entry(&deletion_work_list,
+	if (!list_empty(&sys->deletion_work_list)) {
+		dw = list_first_entry(&sys->deletion_work_list,
 				      struct deletion_work, dw_siblings);
 
 		queue_work(sys->deletion_wqueue, &dw->work);
@@ -674,12 +703,12 @@ static int start_deletion(struct vnode_info *vnode_info, uint32_t vid,
 	 */
 	grab_vnode_info(dw->vnodes);
 
-	if (!list_empty(&deletion_work_list)) {
-		list_add_tail(&dw->dw_siblings, &deletion_work_list);
+	if (!list_empty(&sys->deletion_work_list)) {
+		list_add_tail(&dw->dw_siblings, &sys->deletion_work_list);
 		goto out;
 	}
 
-	list_add_tail(&dw->dw_siblings, &deletion_work_list);
+	list_add_tail(&dw->dw_siblings, &sys->deletion_work_list);
 	queue_work(sys->deletion_wqueue, &dw->work);
 out:
 	return SD_RES_SUCCESS;

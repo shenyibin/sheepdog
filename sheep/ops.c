@@ -476,6 +476,61 @@ static int cluster_snapshot(const struct sd_req *req, struct sd_rsp *rsp,
 	return ret;
 }
 
+static void objlist_cache_del_vdi_work(struct work *work)
+{
+	struct deletion_work *dw = container_of(work, struct deletion_work, work);
+	int i;
+
+	for (i = 0; i < dw->deleted_count; i++)
+		objlist_cache_remove(dw->deleted_objs[i]);
+}
+
+static void objlist_cache_del_vdi_done(struct work *work)
+{
+	struct deletion_work *dw = container_of(work, struct deletion_work, work);
+
+	list_del(&dw->dw_siblings);
+	free(dw);
+
+	if (!list_empty(&sys->deletion_work_list)) {
+		dw = list_first_entry(&sys->deletion_work_list,
+				      struct deletion_work, dw_siblings);
+
+		queue_work(sys->deletion_wqueue, &dw->work);
+	}
+}
+
+static int cluster_notify_vdi_deletion(const struct sd_req *req, struct sd_rsp *rsp,
+				       void *data)
+{
+	int count = req->data_length / sizeof(uint64_t);
+	struct deletion_work *dw = NULL;
+
+	dw = zalloc(sizeof(*dw));
+	if (!dw) {
+		eprintf("no memory to allocate\n");
+		return SD_RES_NO_MEM;
+	}
+
+	dw->deleted_objs = data;
+	dw->deleted_count = count;
+
+	dprintf("VDI %d objects need to be deleted\n", count);
+
+	dw->work.fn = objlist_cache_del_vdi_work;
+	dw->work.done = objlist_cache_del_vdi_done;
+
+	if (!list_empty(&sys->deletion_work_list)) {
+		list_add_tail(&dw->dw_siblings, &sys->deletion_work_list);
+		return SD_RES_SUCCESS;
+	}
+
+	list_add_tail(&dw->dw_siblings, &sys->deletion_work_list);
+	queue_work(sys->deletion_wqueue, &dw->work);
+
+	return SD_RES_SUCCESS;
+}
+
 static int cluster_cleanup(const struct sd_req *req, struct sd_rsp *rsp,
 				void *data)
 {
@@ -774,6 +829,12 @@ static struct sd_op_template sd_ops[] = {
 		.type = SD_OP_TYPE_CLUSTER,
 		.force = 1,
 		.process_main = cluster_cleanup,
+	},
+
+	[SD_OP_NOTIFY_VDI_DEL] = {
+		.type = SD_OP_TYPE_CLUSTER,
+		.force = 1,
+		.process_main = cluster_notify_vdi_deletion,
 	},
 
 	/* local operations */

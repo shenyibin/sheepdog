@@ -91,6 +91,26 @@ struct data_object_bmap {
 	struct list_head list;
 };
 
+
+struct deletion_work {
+	uint32_t done;
+	uint32_t epoch;
+
+	struct work work;
+	struct list_head dw_siblings;
+
+	uint32_t vid;
+
+	int count;
+	uint32_t *buf;
+
+	uint64_t *deleted_objs;
+	uint32_t deleted_count;
+
+	struct vnode_info *vnodes;
+	int delete_error;
+};
+
 #define MAX_OUTSTANDING_DATA_SIZE (1 * 1024 * 1024 * 1024)
 
 struct cluster_info {
@@ -121,6 +141,7 @@ struct cluster_info {
 
 	struct list_head consistent_obj_list;
 	struct list_head blocking_conn_list;
+	struct list_head deletion_work_list;
 
 	int nr_copies;
 
