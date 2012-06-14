@@ -267,8 +267,8 @@ int do_read(int sockfd, void *buf, int len)
 	int ret;
 reread:
 	ret = read(sockfd, buf, len);
-	if (ret < 0 || !ret) {
-		if (errno == EINTR)
+	if (ret < 0) {
+		if (errno == EAGAIN)
 			goto reread;
 		eprintf("failed to read from socket: %m\n");
 		return 1;
@@ -301,7 +301,7 @@ static int do_write(int sockfd, struct msghdr *msg, int len)
 rewrite:
 	ret = sendmsg(sockfd, msg, 0);
 	if (ret < 0) {
-		if (errno == EINTR)
+		if (errno == EAGAIN)
 			goto rewrite;
 		eprintf("failed to write to socket: %m\n");
 		return 1;

@@ -109,6 +109,8 @@ void do_io_request(struct work *work)
 	if (ret != SD_RES_SUCCESS)
 		dprintf("failed: %x, %" PRIx64" , %u, %"PRIx32"\n",
 			req->rq.opcode, req->rq.obj.oid, epoch, ret);
+	dprintf("result:%"PRIu32", opcode:%x, epoch:%"PRIx32", data_length:%d\n",
+		req->rp.result, req->rp.opcode, req->rp.epoch, req->rp.data_length);
 	req->rp.result = ret;
 }
 
