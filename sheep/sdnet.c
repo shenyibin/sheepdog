@@ -870,12 +870,11 @@ int get_sheep_fd(uint8_t *addr, uint16_t port, int node_idx, uint32_t epoch)
 	fd = cached_fds[node_idx];
 	//dprintf("%d, %d\n", epoch, fd);
 
+	addr_to_str(name, sizeof(name), addr, 0);
 	if (cached_epoch == epoch && fd >= 0) {
 		dprintf("using the cached fd %d, %s:%d\n", fd, name, port);
 		return fd;
 	}
-
-	addr_to_str(name, sizeof(name), addr, 0);
 
 	fd = connect_to(name, port);
 	if (fd < 0)
