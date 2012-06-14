@@ -622,7 +622,8 @@ static void client_tx_handler(struct client_info *ci)
 	struct sd_rsp *rsp = (struct sd_rsp *)&ci->conn.tx_hdr;
 	struct connection *conn, *n;
 again:
-	init_tx_hdr(ci);
+	if (ci->conn.c_tx_state != C_IO_RETRY)
+		init_tx_hdr(ci);
 	if (!ci->tx_req) {
 		conn_tx_off(&ci->conn);
 		if (sys->outstanding_data_size < MAX_OUTSTANDING_DATA_SIZE) {

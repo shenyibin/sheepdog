@@ -12,6 +12,7 @@ enum conn_state {
 	C_IO_DATA,
 	C_IO_END,
 	C_IO_CLOSED,
+	C_IO_RETRY
 };
 
 struct connection {

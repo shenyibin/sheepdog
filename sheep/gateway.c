@@ -199,7 +199,7 @@ again:
 		memmove(pfds + i, pfds + i + 1, sizeof(*pfds) * (nr_fds - i));
 	}
 
-	dprintf("%"PRIx64" %"PRIu32"\n", oid, nr_fds);
+	dprintf("%"PRIx64" %"PRIu32", fd:%d\n", oid, nr_fds, pfds[i].fd);
 
 	if (nr_fds > 0)
 		goto again;

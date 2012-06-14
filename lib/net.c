@@ -100,6 +100,11 @@ int tx(struct connection *conn, enum conn_state next_state, int flags)
 	if (ret < 0) {
 		if (errno != EAGAIN)
 			conn->c_tx_state = C_IO_CLOSED;
+		else {
+			dprintf("EAGAIN, fd:%d, %s:%d\n", conn->fd, conn->ipstr,
+				conn->port);
+			conn->c_tx_state = C_IO_RETRY;
+		}
 		return 0;
 	}
 
