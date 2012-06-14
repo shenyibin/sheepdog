@@ -678,7 +678,7 @@ again:
 
 static void destroy_client(struct client_info *ci)
 {
-	dprintf("connection from: %s:%d\n", ci->conn.ipstr, ci->conn.port);
+	dprintf("connection from: %s:%d, fd:%d\n", ci->conn.ipstr, ci->conn.port, ci->conn.fd);
 	close(ci->conn.fd);
 	free(ci);
 }
