@@ -586,7 +586,7 @@ static void client_rx_handler(struct client_info *ci)
 	else
 		req->rp.data_length = hdr->data_length;
 
-	dprintf("2 connection from2: %s:%d\n", ci->conn.ipstr, ci->conn.port);
+	dprintf("2 connection from: %s:%d\n", ci->conn.ipstr, ci->conn.port);
 	queue_request(req);
 }
 
@@ -621,9 +621,11 @@ static void client_tx_handler(struct client_info *ci)
 	int ret, opt;
 	struct sd_rsp *rsp = (struct sd_rsp *)&ci->conn.tx_hdr;
 	struct connection *conn, *n;
+	dprintf("1 connection from: %s:%d\n", ci->conn.ipstr, ci->conn.port);
 again:
-	if (ci->conn.c_tx_state != C_IO_RETRY)
+	if (!ci->conn.retry)
 		init_tx_hdr(ci);
+
 	if (!ci->tx_req) {
 		conn_tx_off(&ci->conn);
 		if (sys->outstanding_data_size < MAX_OUTSTANDING_DATA_SIZE) {
@@ -675,6 +677,7 @@ again:
 		ci->tx_req = NULL;
 		goto again;
 	}
+	dprintf("2 connection from: %s:%d\n", ci->conn.ipstr, ci->conn.port);
 }
 
 static void destroy_client(struct client_info *ci)

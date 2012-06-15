@@ -96,6 +96,7 @@ int tx(struct connection *conn, enum conn_state next_state, int flags)
 {
 	int ret;
 
+resend:
 	ret = send(conn->fd, conn->tx_buf, conn->tx_length, flags);
 	if (ret < 0) {
 		if (errno != EAGAIN)
@@ -103,7 +104,7 @@ int tx(struct connection *conn, enum conn_state next_state, int flags)
 		else {
 			dprintf("EAGAIN, fd:%d, %s:%d\n", conn->fd, conn->ipstr,
 				conn->port);
-			conn->c_tx_state = C_IO_RETRY;
+			conn->retry = 1;
 		}
 		return 0;
 	}
@@ -111,8 +112,14 @@ int tx(struct connection *conn, enum conn_state next_state, int flags)
 	conn->tx_length -= ret;
 	conn->tx_buf = (char *)conn->tx_buf + ret;
 
-	if (!conn->tx_length)
+	if (!conn->tx_length) {
+		conn->retry = 0;
 		conn->c_tx_state = next_state;
+	} else {
+		dprintf("resend, fd:%d, %s:%d\n", conn->fd, conn->ipstr,
+				conn->port);
+		goto resend;
+	}
 
 	return ret;
 }
