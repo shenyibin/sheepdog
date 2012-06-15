@@ -741,14 +741,16 @@ static void client_handler(int fd, int events, void *data)
 	struct client_info *ci = (struct client_info *)data;
 
 	dprintf("fd %d, %d\n", fd, events);
+	if (events & (EPOLLERR | EPOLLHUP))
+		goto err;
+	if (events & EPOLLOUT)
+		client_tx_handler(ci);
 	if (events & EPOLLIN)
 		client_rx_handler(ci);
 
-	if (events & EPOLLOUT)
-		client_tx_handler(ci);
-
 	if ((events & (EPOLLERR | EPOLLHUP))
 		|| is_conn_dead(&ci->conn)) {
+err:
 		dprintf("fd %d, %d, conn_dead %d\n", fd, events,
 			is_conn_dead(&ci->conn));
 		if (!(ci->conn.events & EPOLLIN))
