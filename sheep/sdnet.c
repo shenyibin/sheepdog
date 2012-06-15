@@ -576,6 +576,7 @@ static void client_rx_handler(struct client_info *ci)
 		return;
 
 	/* now we have a complete command */
+	conn_rx_off(&ci->conn);
 
 	req = ci->rx_req;
 
@@ -623,8 +624,7 @@ static void client_tx_handler(struct client_info *ci)
 	struct connection *conn, *n;
 	dprintf("1 connection from: %s:%d\n", ci->conn.ipstr, ci->conn.port);
 again:
-	if (!ci->conn.retry)
-		init_tx_hdr(ci);
+	init_tx_hdr(ci);
 
 	if (!ci->tx_req) {
 		conn_tx_off(&ci->conn);
