@@ -526,7 +526,9 @@ static void client_rx_handler(struct client_info *ci)
 	struct sd_req *hdr = &conn->rx_hdr;
 	struct request *req;
 
-	dprintf("1 connection from: %s:%d\n", ci->conn.ipstr, ci->conn.port);
+	dprintf("1 connection from: %s:%d, rx_length:%d, retry:%d, rx_req:%p\n",
+		ci->conn.ipstr, ci->conn.port, ci->conn.rx_length,
+		ci->conn.retry, ci->rx_req);
 	if (!ci->rx_req && sys->outstanding_data_size > MAX_OUTSTANDING_DATA_SIZE) {
 		dprintf("too many requests (%p)\n", &ci->conn);
 		conn_rx_off(&ci->conn);
@@ -587,7 +589,8 @@ static void client_rx_handler(struct client_info *ci)
 	else
 		req->rp.data_length = hdr->data_length;
 
-	dprintf("2 connection from: %s:%d\n", ci->conn.ipstr, ci->conn.port);
+	dprintf("2 connection from: %s:%d, rx_length:%d\n",
+		ci->conn.ipstr, ci->conn.port, ci->conn.rx_length);
 	queue_request(req);
 }
 
@@ -622,7 +625,9 @@ static void client_tx_handler(struct client_info *ci)
 	int ret, opt;
 	struct sd_rsp *rsp = (struct sd_rsp *)&ci->conn.tx_hdr;
 	struct connection *conn, *n;
-	dprintf("1 connection from: %s:%d\n", ci->conn.ipstr, ci->conn.port);
+	dprintf("1 connection from: %s:%d, tx_length:%d, retry:%d, tx_req:%p\n",
+		ci->conn.ipstr, ci->conn.port, ci->conn.tx_length,
+		ci->conn.retry, ci->tx_req);
 again:
 	init_tx_hdr(ci);
 
@@ -678,7 +683,8 @@ again:
 		ci->tx_req = NULL;
 		goto again;
 	}
-	dprintf("2 connection from: %s:%d\n", ci->conn.ipstr, ci->conn.port);
+	dprintf("2 connection from: %s:%d, tx_length:%d\n",
+		ci->conn.ipstr, ci->conn.port, ci->conn.tx_length);
 }
 
 static void destroy_client(struct client_info *ci)

@@ -71,6 +71,7 @@ int rx(struct connection *conn, enum conn_state next_state)
 {
 	int ret;
 
+reread:
 	ret = read(conn->fd, conn->rx_buf, conn->rx_length);
 	if (!ret) {
 		conn->c_rx_state = C_IO_CLOSED;
@@ -78,16 +79,28 @@ int rx(struct connection *conn, enum conn_state next_state)
 	}
 
 	if (ret < 0) {
-		if (errno != EAGAIN)
+		if (errno != EAGAIN) {
+			dprintf("errno:%d, fd:%d, %s:%d\n", errno, conn->fd,
+				conn->ipstr, conn->port);
 			conn->c_rx_state = C_IO_CLOSED;
+		} else {
+			dprintf("EAGAIN, fd:%d, %s:%d\n", conn->fd, conn->ipstr,
+				conn->port);
+			conn->retry = 1;
+		}
 		return 0;
 	}
 
 	conn->rx_length -= ret;
 	conn->rx_buf = (char *)conn->rx_buf + ret;
 
-	if (!conn->rx_length)
+	if (!conn->rx_length) {
 		conn->c_rx_state = next_state;
+	} else {
+		dprintf("reread, fd:%d, %s:%d\n", conn->fd, conn->ipstr,
+				conn->port);
+		goto reread;
+	}
 
 	return ret;
 }
@@ -99,9 +112,11 @@ int tx(struct connection *conn, enum conn_state next_state, int flags)
 resend:
 	ret = send(conn->fd, conn->tx_buf, conn->tx_length, flags);
 	if (ret < 0) {
-		if (errno != EAGAIN)
+		if (errno != EAGAIN) {
+			dprintf("errno:%d, fd:%d, %s:%d\n", errno, conn->fd,
+				conn->ipstr, conn->port);
 			conn->c_tx_state = C_IO_CLOSED;
-		else {
+		} else {
 			dprintf("EAGAIN, fd:%d, %s:%d\n", conn->fd, conn->ipstr,
 				conn->port);
 			conn->retry = 1;
