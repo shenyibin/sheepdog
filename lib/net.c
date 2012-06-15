@@ -71,7 +71,7 @@ int rx(struct connection *conn, enum conn_state next_state)
 {
 	int ret;
 
-	ret = xread(conn->fd, conn->rx_buf, conn->rx_length);
+	ret = read(conn->fd, conn->rx_buf, conn->rx_length);
 	if (!ret) {
 		conn->c_rx_state = C_IO_CLOSED;
 		return 0;
