@@ -751,12 +751,12 @@ static void client_handler(int fd, int events, void *data)
 
 	if ((events & (EPOLLERR | EPOLLHUP))
 		|| is_conn_dead(&ci->conn)) {
+
+		if (!(ci->conn.events & EPOLLIN))
+			list_del(&ci->conn.blocking_siblings);
 err:
 		dprintf("fd %d, %d, conn_dead %d\n", fd, events,
 			is_conn_dead(&ci->conn));
-		if (!(ci->conn.events & EPOLLIN))
-			list_del(&ci->conn.blocking_siblings);
-
 		dprintf("closed connection %d, %s:%d\n", fd,
 			ci->conn.ipstr, ci->conn.port);
 		unregister_event(fd);
