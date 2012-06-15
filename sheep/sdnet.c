@@ -752,7 +752,8 @@ static void client_handler(int fd, int events, void *data)
 	if ((events & (EPOLLERR | EPOLLHUP))
 		|| is_conn_dead(&ci->conn)) {
 
-		if (!(ci->conn.events & EPOLLIN))
+		if (ci->conn.blocking_siblings.next
+		    != ci->conn.blocking_siblings.prev)
 			list_del(&ci->conn.blocking_siblings);
 err:
 		dprintf("fd %d, %d, conn_dead %d\n", fd, events,
