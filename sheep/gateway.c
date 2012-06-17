@@ -280,8 +280,9 @@ void do_gateway_request(struct work *work)
 	struct request *req = container_of(work, struct request, work);
 	int ret = SD_RES_SUCCESS;
 
-	dprintf("%x, %" PRIx64" , %u\n",
-		req->rq.opcode, req->rq.obj.oid, req->rq.epoch);
+	dprintf("%x, %" PRIx64" , %u, fd:%d %s:%d\n",
+		req->rq.opcode, req->rq.obj.oid, req->rq.epoch,
+		req->ci->conn.fd, req->ci->conn.ipstr, req->ci->conn.port);
 
 	if (!sys->enable_write_cache || bypass_object_cache(req)) {
 		/* fix object consistency when we read the object for the first time */
@@ -302,5 +303,8 @@ out:
 	if (ret != SD_RES_SUCCESS)
 		dprintf("failed: %x, %" PRIx64" , %u, %"PRIx32"\n",
 			req->rq.opcode, req->rq.obj.oid, req->rq.epoch, ret);
+	dprintf("result:%"PRIu32", opcode:%x, oid:%" PRIx64" , epoch:%u, fd:%d %s:%d\n",
+		ret, req->rq.opcode, req->rq.obj.oid, req->rq.epoch,
+		req->ci->conn.fd, req->ci->conn.ipstr, req->ci->conn.port);
 	req->rp.result = ret;
 }
