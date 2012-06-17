@@ -95,6 +95,7 @@ reread:
 	conn->rx_buf = (char *)conn->rx_buf + ret;
 
 	if (!conn->rx_length) {
+		conn->retry = 0;
 		conn->c_rx_state = next_state;
 	} else {
 		dprintf("reread, fd:%d, %s:%d\n", conn->fd, conn->ipstr,

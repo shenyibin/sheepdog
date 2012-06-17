@@ -101,16 +101,18 @@ void do_io_request(struct work *work)
 	else
 		epoch = req->rq.epoch;
 
-	//dprintf("%x, %" PRIx64" , %u\n",
-	//	req->rq.opcode, req->rq.obj.oid, epoch);
+	dprintf("%x, %" PRIx64" , %u, fd:%d %s:%d\n",
+		req->rq.opcode, req->rq.obj.oid, epoch,
+		req->ci->conn.fd, req->ci->conn.ipstr, req->ci->conn.port);
 
 	ret = do_local_io(req, epoch);
 
 	if (ret != SD_RES_SUCCESS)
 		dprintf("failed: %x, %" PRIx64" , %u, %"PRIx32"\n",
 			req->rq.opcode, req->rq.obj.oid, epoch, ret);
-	dprintf("result:%"PRIu32", opcode:%x, epoch:%"PRIx32", data_length:%d\n",
-		req->rp.result, req->rp.opcode, req->rp.epoch, req->rp.data_length);
+	dprintf("result:%"PRIu32", opcode:%x, epoch:%"PRIx32", data_length:%d, fd:%d %s:%d\n",
+		req->rp.result, req->rp.opcode, req->rp.epoch, req->rp.data_length,
+		req->ci->conn.fd, req->ci->conn.ipstr, req->ci->conn.port);
 	req->rp.result = ret;
 }
 

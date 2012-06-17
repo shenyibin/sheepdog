@@ -242,8 +242,6 @@ static inline void
 add_to_dirty_tree_and_list(struct object_cache *oc,
 			   struct object_cache_entry *entry)
 {
-	struct object_cache_entry *dummy;
-
 	if (!dirty_tree_insert(oc->active_dirty_tree, entry))
 		list_add(&entry->list, oc->active_dirty_list);
 	else
