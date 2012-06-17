@@ -483,6 +483,8 @@ static struct request *alloc_request(struct client_info *ci, int data_length)
 	sys->nr_outstanding_reqs++;
 	sys->outstanding_data_size += data_length;
 
+	dprintf("request alloced, size=%d\n", data_length);
+
 	return req;
 }
 
@@ -491,6 +493,7 @@ static void free_request(struct request *req)
 	sys->nr_outstanding_reqs--;
 	sys->outstanding_data_size -= req->data_length;
 
+	dprintf("request freed, size=%d\n", req->data_length);
 	put_vnode_info(req->vnodes);
 	free(req->data);
 	free(req);
