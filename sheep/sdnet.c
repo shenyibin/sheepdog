@@ -825,7 +825,8 @@ static void listen_handler(int listen_fd, int events, void *data)
 		return;
 	}
 
-	dprintf("accepted a new connection: %d\n", fd);
+	dprintf("accepted a new connection: %d %s:%d\n", fd,
+		ci->conn.ipstr, ci->conn.port);
 }
 
 static int create_listen_port_fn(int fd, void *data)
