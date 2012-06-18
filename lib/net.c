@@ -24,6 +24,7 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/ioctl.h>
 
 #include "sheepdog_proto.h"
 #include "util.h"
@@ -84,8 +85,12 @@ reread:
 				conn->ipstr, conn->port);
 			conn->c_rx_state = C_IO_CLOSED;
 		} else {
-			dprintf("EAGAIN, fd:%d, %s:%d\n", conn->fd, conn->ipstr,
-				conn->port);
+			int len;
+
+			ioctl(conn->fd, 0x541b, &len);
+			dprintf("EAGAIN, fd:%d,len:%d, %s:%d\n", conn->fd, len,
+				conn->ipstr, conn->port);
+
 			conn->retry = 1;
 		}
 		return 0;
@@ -118,8 +123,11 @@ resend:
 				conn->ipstr, conn->port);
 			conn->c_tx_state = C_IO_CLOSED;
 		} else {
-			dprintf("EAGAIN, fd:%d, %s:%d\n", conn->fd, conn->ipstr,
-				conn->port);
+			int len;
+
+			ioctl(conn->fd, 0x5411, &len);
+			dprintf("EAGAIN, fd:%d, len:%d, %s:%d\n", conn->fd, len,
+				conn->ipstr, conn->port);
 			conn->retry = 1;
 		}
 		return 0;
