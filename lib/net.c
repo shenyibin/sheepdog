@@ -307,8 +307,15 @@ reread:
 
 	len -= ret;
 	buf = (char *)buf + ret;
-	if (len)
-		goto reread;
+	if (len) {
+		if (ret != 0)
+			goto reread;
+		else {
+			vprintf(SDOG_DEBUG,
+				"socket dropped,len=%d, ret=%d\n", len, ret);
+			return 1;
+		}
+	}
 
 	return 0;
 }
