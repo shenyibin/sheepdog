@@ -192,16 +192,43 @@ retest:
 		work = list_first_entry(&wi->q.pending_list,
 				       struct work, w_list);
 
-		list_del(&work->w_list);
-		pthread_mutex_unlock(&wi->pending_lock);
+		if (work->w_list.next == NULL || work->w_list.prev == NULL){
+			struct list_head *prev, *next;
 
-		work->fn(work);
+			/*
+			 * FIXME:
+			 * It should be a bug when program run into here,
+			 * following code try to remove work->w_list from
+			 * wi->pending_list and repair it.
+			 */
+			prev = &wi->q.pending_list;
+			next = &wi->q.pending_list;
 
-		pthread_mutex_lock(&wi->finished_lock);
-		list_add_tail(&work->w_list, &wi->finished_list);
-		pthread_mutex_unlock(&wi->finished_lock);
+			while (prev->prev != &work->w_list &&
+			       prev->prev != NULL) {
+				prev = prev->prev;
+			}
 
-		eventfd_write(efd, value);
+			while (next->next != &work->w_list &&
+			       next->next !=NULL) {
+				next = next->next;
+			}
+
+			prev->prev = next;
+			next->next = prev;
+		} else {
+			list_del(&work->w_list);
+
+			pthread_mutex_unlock(&wi->pending_lock);
+
+			work->fn(work);
+
+			pthread_mutex_lock(&wi->finished_lock);
+			list_add_tail(&work->w_list, &wi->finished_list);
+			pthread_mutex_unlock(&wi->finished_lock);
+
+			eventfd_write(efd, value);
+		}
 	}
 
 	pthread_exit(NULL);
