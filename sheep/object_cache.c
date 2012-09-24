@@ -48,7 +48,7 @@
 
 
 struct global_cache {
-	uint32_t cache_size;
+	unsigned long cache_size;
 	int in_reclaim;
 	struct cds_list_head cache_lru_list;
 };
@@ -515,7 +515,7 @@ static int do_reclaim_object(struct object_cache_entry *entry)
 		goto out;
 	}
 
-	dprintf("oid %"PRIx64" reclaimed successfully, cache_size: %"PRId32"\n",
+	dprintf("oid %"PRIx64" reclaimed successfully, cache_size: %ld\n",
 		oid, uatomic_read(&sys_cache.cache_size));
 	del_from_object_tree_and_list(entry, &oc->object_tree);
 out:

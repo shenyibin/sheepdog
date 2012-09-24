@@ -193,8 +193,8 @@ static void object_cache_size_set(char *s)
 	const char *header = "size=";
 	int len = strlen(header);
 	char *size, *p;
-	uint32_t cache_size;
-	const uint32_t max_cache_size = UINT32_MAX / 1024 / 1024;
+	unsigned long cache_size;
+	const unsigned long max_cache_size = ULONG_MAX / 1024 / 1024;
 
 	assert(!strncmp(s, header, len));
 
@@ -208,7 +208,7 @@ static void object_cache_size_set(char *s)
 
 err:
 	fprintf(stderr, "Invalid object cache option '%s': "
-		"size must be an integer between 0 and %"PRIu32"\n",
+		"size must be an integer between 0 and %lu\n",
 		s, max_cache_size);
 	exit(1);
 }
